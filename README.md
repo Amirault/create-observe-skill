@@ -14,7 +14,7 @@ A skill that writes skills. Name any of your Claude Code skills and it builds `o
 finds every past run in your local transcripts, attributes each second to one cause (LLM, tests,
 hooks, git, subagents, human wait…) and tells you whether the skill got **better or worse** than before.
 
-![The observe-tidy-code dashboard: verdict, median and p90 run, delivery rate, medians per cause and per step](docs/dashboard.png)
+![Verdict card: "Better than the 10 runs before", median delivered run 7.8 min vs 14 min](docs/verdict.png)
 
 <sub>Fictional data from the demo in <a href="examples"><code>examples/</code></a>.</sub>
 
@@ -34,8 +34,33 @@ Then, in Claude Code:
 observe tidy-code                    # dashboard and verdict, any time after
 ```
 
-Try it without transcripts of your own: `examples/check-demo.sh` builds the dashboard above from 32
+Try it without transcripts of your own: `examples/check-demo.sh` builds the dashboard below from 32
 fictional runs.
+
+## Reading the dashboard
+
+Four questions, most important first.
+
+**1. Is my skill better or worse?** The verdict above compares your latest runs with the runs
+before. It says *Better* or *Worse* only when the gap is unlikely to be luck (p < 0.05).
+
+**2. Why?** Each run's time is split by cause and by step of your skill, and each row gets its own
+verdict. Here the tests got faster, so *Step 2 — Clean* got faster.
+
+![What changed, and why: medians per cause and per step, current vs previous window, with a verdict per row](docs/what-changed.png)
+
+**3. What happened in this run?** A timeline of one run: which step, which agent, doing what.
+Long waits and stuck subagents stand out.
+
+![Run spans: a steps lane, then one lane per agent, coloured by cause, and the slowest tool calls](docs/run-spans.png)
+
+**4. Where is it heading?** One dot per run over time (hollow when the run delivered nothing),
+with a rolling median.
+
+![Run duration over time: one dot per run, rolling median, previous and current windows shaded](docs/trend.png)
+
+Before reading, pick a **Spec** (compare similar requests only) and **Active** time if you want to
+leave out the time the agent waited for you.
 
 ## How it works
 
