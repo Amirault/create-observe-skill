@@ -1,0 +1,43 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: python -m unittest discover -s skills/create-observe-skill/scripts -v
+
+  demo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: examples/check-demo.sh
+      - name: survey finds the demo runs
+        run: |
+          python3 skills/create-observe-skill/scripts/survey.py tidy-code --root .demo/projects --skill-md examples/skills/tidy-code/SKILL.md | grep -q "Starts in interactive sessions: 32"
+
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          mkdir /tmp/project
+          ./install.sh /tmp/project --target both
+          test -f /tmp/project/.claude/skills/create-observe-skill/scripts/observe.py
+          test -f /tmp/project/.agents/skills/create-observe-skill/SKILL.md
+          HOME=/tmp/home ./install.sh --user
+          python3 /tmp/home/.claude/skills/create-observe-skill/scripts/observe.py --help > /dev/null

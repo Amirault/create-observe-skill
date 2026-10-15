@@ -1,0 +1,1139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Skill runs</title>
+<style>
+:root {
+  color-scheme: light;
+  --page: #f9f9f7; --surface: #fcfcfb; --ink: #0b0b0b; --ink-2: #52514e; --muted: #898781;
+  --grid: #e1e0d9; --axis: #c3c2b7; --ring: rgba(11,11,11,0.10); --wash: rgba(11,11,11,0.04); --wash-2: rgba(11,11,11,0.08);
+  --accent: #2a78d6; --good: #0ca30c; --good-ink: #006300; --critical: #d03b3b; --warning: #fab219;
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; --s6: #008300; --s7: #4a3aa7; --s8: #e34948;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page: #0d0d0d; --surface: #1a1a19; --ink: #ffffff; --ink-2: #c3c2b7; --muted: #898781;
+    --grid: #2c2c2a; --axis: #383835; --ring: rgba(255,255,255,0.10); --wash: rgba(255,255,255,0.05); --wash-2: rgba(255,255,255,0.10);
+    --accent: #3987e5; --good-ink: #0ca30c;
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300; --s7: #9085e9; --s8: #e66767;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d; --surface: #1a1a19; --ink: #ffffff; --ink-2: #c3c2b7; --muted: #898781;
+  --grid: #2c2c2a; --axis: #383835; --ring: rgba(255,255,255,0.10); --wash: rgba(255,255,255,0.05); --wash-2: rgba(255,255,255,0.10);
+  --accent: #3987e5; --good-ink: #0ca30c;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300; --s7: #9085e9; --s8: #e66767;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--page); color: var(--ink); font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+main { max-width: 1280px; margin: 0 auto; padding: 24px 16px 64px; }
+h1 { font-size: 22px; margin: 0; font-weight: 600; }
+h2 { font-size: 15px; margin: 0 0 2px; font-weight: 600; }
+h3 { font-size: 14px; margin: 16px 0 6px; font-weight: 600; }
+.sub { color: var(--ink-2); font-size: 13px; }
+.muted { color: var(--muted); }
+header { display: flex; flex-wrap: wrap; gap: 8px 24px; align-items: baseline; justify-content: space-between; margin-bottom: 16px; }
+.controls { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; margin-bottom: 16px; }
+.spacer { flex: 1; }
+.seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--ring); border-radius: 8px; overflow: hidden; background: var(--surface); }
+.seg button { border: 0; background: transparent; color: var(--ink-2); padding: 6px 10px; font: inherit; font-size: 13px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--wash-2); color: var(--ink); font-weight: 600; }
+.seg button:hover { background: var(--wash); }
+select { font: inherit; font-size: 13px; color: var(--ink); background: var(--surface); border: 1px solid var(--ring); border-radius: 8px; padding: 5px 8px; max-width: min(520px, calc(100vw - 96px)); text-overflow: ellipsis; }
+.btn { border: 1px solid var(--ring); background: var(--surface); color: var(--ink); border-radius: 8px; padding: 6px 12px; font: inherit; font-size: 13px; cursor: pointer; }
+.btn:hover { background: var(--wash); }
+label.chk { display: inline-flex; gap: 6px; align-items: center; color: var(--ink-2); font-size: 13px; max-width: 100%; }
+.card { background: var(--surface); border: 1px solid var(--ring); border-radius: 12px; padding: 16px; margin-bottom: 16px; min-width: 0; }
+.card-head { display: flex; flex-wrap: wrap; gap: 8px 16px; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+.section-head { display: flex; flex-wrap: wrap; gap: 8px 16px; justify-content: space-between; align-items: flex-end; margin: 32px 0 12px; }
+.section-head h2 { font-size: 17px; }
+.verdict { display: flex; gap: 14px; align-items: flex-start; padding: 14px 16px; border-radius: 10px; background: var(--wash); margin-bottom: 14px; }
+.verdict .badge { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; font-size: 18px; font-weight: 700; color: #ffffff; flex: none; background: var(--muted); }
+.verdict.good .badge { background: var(--good); }
+.verdict.bad .badge { background: var(--critical); }
+.verdict.warn .badge { background: var(--warning); color: #0b0b0b; }
+.verdict .title { font-size: 20px; font-weight: 600; line-height: 1.3; }
+.verdict .text { color: var(--ink-2); margin-top: 2px; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+.tile { border: 1px solid var(--ring); border-radius: 12px; padding: 12px 14px; background: var(--surface); display: flex; flex-direction: column; gap: 4px; }
+.tile .label { color: var(--ink-2); font-size: 12px; }
+.tile .value { font-size: 26px; font-weight: 600; line-height: 1.15; }
+.tile.hero .value { font-size: 44px; }
+.tile .note { color: var(--muted); font-size: 12px; }
+.tile .chip { white-space: normal; }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 1px 9px; border-radius: 999px; border: 1px solid var(--ring); font-size: 12px; color: var(--ink); background: var(--surface); white-space: nowrap; width: fit-content; }
+.chip .ic { font-weight: 700; }
+.chip.good .ic { color: var(--good-ink); }
+.chip.bad .ic { color: var(--critical); }
+.chip.warn .ic { color: var(--warning); }
+.chip.neutral .ic { color: var(--muted); }
+.warn-box { margin: -4px 0 14px; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--ring); color: var(--ink-2); font-size: 13px; }
+.warn-box::before { content: "! "; color: var(--warning); font-weight: 700; }
+.grid2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+@media (max-width: 900px) { .grid2 { grid-template-columns: minmax(0, 1fr); } }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; color: var(--ink-2); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+.legend i.dot { border-radius: 50%; }
+.legend i.hollow { border-radius: 50%; background: transparent; border: 2px solid var(--ink-2); }
+.legend i.line { width: 14px; height: 2px; border-radius: 1px; }
+.chart { width: 100%; overflow: hidden; }
+svg text { fill: var(--muted); font-size: 11px; font-family: inherit; }
+svg .ink { fill: var(--ink-2); }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--grid); white-space: nowrap; }
+th { color: var(--ink-2); font-weight: 600; font-size: 12px; }
+th.sortable { cursor: pointer; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+tr.section td { color: var(--ink-2); font-size: 12px; font-weight: 600; padding-top: 14px; border-bottom: 1px solid var(--axis); }
+tbody tr.clickable { cursor: pointer; }
+tbody tr.clickable:hover { background: var(--wash); }
+tbody tr.selected { background: var(--wash); box-shadow: inset 3px 0 0 var(--accent); }
+td.wrap { white-space: normal; min-width: 260px; }
+code { font: 12px ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--ink-2); }
+.pill { display: inline-block; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--ring); font-size: 12px; color: var(--ink-2); }
+.pill.bad::before { content: "✕ "; color: var(--critical); }
+.pill.ok::before { content: "✓ "; color: var(--good-ink); }
+.insights { margin: 0; padding-left: 18px; }
+.insights li { margin: 5px 0; }
+.bar-inline { display: flex; height: 10px; border-radius: 3px; overflow: hidden; min-width: 120px; gap: 2px; }
+.bar-inline > div { height: 100%; }
+#tooltip { position: fixed; pointer-events: none; z-index: 10; background: var(--surface); color: var(--ink); border: 1px solid var(--ring); border-radius: 8px; padding: 8px 10px; font-size: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.12); max-width: 380px; display: none; }
+#tooltip .t-title { color: var(--ink-2); margin-bottom: 4px; }
+#tooltip .t-row { display: flex; align-items: center; gap: 8px; }
+#tooltip .t-row b { min-width: 52px; text-align: right; font-variant-numeric: tabular-nums; }
+#tooltip .t-key { width: 12px; height: 2px; border-radius: 1px; flex: none; }
+.loading { opacity: 0.5; transition: opacity 0.2s; }
+.empty { color: var(--muted); padding: 24px 0; text-align: center; }
+.kv { display: grid; grid-template-columns: max-content 1fr; gap: 3px 12px; font-size: 13px; margin: 0; }
+.kv dt { color: var(--ink-2); }
+.kv dd { margin: 0; overflow-wrap: anywhere; }
+</style>
+</head>
+<body>
+<main id="app">
+  <header>
+    <div>
+      <h1 id="title">Skill runs</h1>
+      <div class="sub">Every <code id="skill-name">skill</code> run found in the local Claude Code transcripts, each second attributed to one cause.</div>
+    </div>
+    <div class="sub" id="meta"></div>
+  </header>
+
+  <div class="controls" role="toolbar" aria-label="Filters for the whole page">
+    <div class="seg" id="f-kind" aria-label="Run kind"></div>
+    <label class="chk">Spec <select id="f-case" aria-label="Spec"></select></label>
+    <div class="seg" id="f-metric" aria-label="Duration metric"></div>
+    <span class="spacer"></span>
+    <label class="chk" id="auto-wrap"><input type="checkbox" id="f-auto"> Auto-refresh 60 s</label>
+    <button class="btn" id="refresh" type="button">Refresh</button>
+  </div>
+
+  <section class="card" aria-labelledby="now-title">
+    <div class="card-head">
+      <div><h2 id="now-title">Current performance</h2><div class="sub" id="now-sub"></div></div>
+      <div class="seg" id="f-window" aria-label="Current window"></div>
+    </div>
+    <div class="verdict" id="verdict" role="status"></div>
+    <div class="warn-box" id="mix-warning" hidden></div>
+    <div class="tiles" id="tiles"></div>
+  </section>
+
+  <section class="card">
+    <div class="card-head"><div><h2>What changed, and why</h2><div class="sub" id="changes-sub"></div></div></div>
+    <div class="table-wrap"><table id="changes"></table></div>
+    <h3>Where the time goes in the current window</h3>
+    <ul class="insights" id="insights"></ul>
+  </section>
+
+  <div class="section-head">
+    <div><h2>Trend</h2><div class="sub">All runs matching the filters; the shaded bands are the current and previous windows.</div></div>
+  </div>
+
+  <section class="card">
+    <div class="card-head">
+      <div><h2>Run duration over time</h2><div class="sub">Each dot is a run, hollow when it delivered nothing; the line is the rolling median of the last 5 delivered runs.</div></div>
+      <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap">
+        <div class="legend" id="trend-legend"></div>
+        <label class="chk"><input type="checkbox" id="f-log"> Log scale</label>
+      </div>
+    </div>
+    <div class="chart" id="trend"></div>
+  </section>
+
+  <section class="card">
+    <div class="card-head">
+      <div><h2>Where the time goes, run by run</h2><div class="sub">Oldest to newest; click a column to open the run. Columns taller than the axis are cut and labeled with their total.</div></div>
+      <div class="seg" id="f-stack" aria-label="Scale"></div>
+    </div>
+    <div class="legend" id="group-legend" style="margin-bottom:8px"></div>
+    <div class="chart" id="stack"></div>
+  </section>
+
+  <div class="section-head">
+    <div><h2>Details</h2><div class="sub">Durations and percentiles use delivered runs; time totals include every run, since failed runs cost time too.</div></div>
+    <div class="seg" id="f-scope" aria-label="Runs covered by the details"></div>
+  </div>
+
+  <div class="grid2">
+    <section class="card">
+      <div class="card-head"><div><h2>Total time by cause</h2><div class="sub">Sum over the runs in scope, share of the total.</div></div></div>
+      <div class="chart" id="groups"></div>
+    </section>
+    <section class="card">
+      <div class="card-head"><div><h2>Percentiles per run</h2><div class="sub" id="pct-sub">Delivered runs in scope; with few runs, p95 is close to the max.</div></div></div>
+      <div class="table-wrap"><table id="pct"></table></div>
+    </section>
+  </div>
+
+  <section class="card">
+    <div class="card-head"><div><h2>Phases</h2><div class="sub">Time attributed to each actor (orchestrator or subagent), and what that actor spent it on.</div></div></div>
+    <div class="table-wrap"><table id="phases"></table></div>
+  </section>
+
+  <section class="card" id="steps-card" hidden>
+    <div class="card-head"><div><h2>Steps</h2><div class="sub">Time in each step of the observed skill, entered at the last marker seen. A step never detected needs its markers checked: <code>observe.py --config &lt;config&gt; steps &lt;transcript&gt;</code>.</div></div></div>
+    <div class="table-wrap"><table id="steps"></table></div>
+  </section>
+
+  <section class="card">
+    <div class="card-head"><div><h2>Detailed causes</h2><div class="sub">The leaf causes behind each group.</div></div></div>
+    <div class="table-wrap"><table id="leaves"></table></div>
+  </section>
+
+  <section class="card" id="detail-card">
+    <div class="card-head"><div><h2 id="detail-title">Run spans</h2><div class="sub" id="detail-sub">Select a run in a chart or a table.</div></div></div>
+    <div class="chart" id="gantt"></div>
+    <div class="grid2" style="margin-top:12px">
+      <dl class="kv" id="detail-kv"></dl>
+      <div class="table-wrap"><table id="detail-subs"></table></div>
+    </div>
+    <h3>Slowest tool calls of this run</h3>
+    <div class="table-wrap"><table id="detail-tools"></table></div>
+  </section>
+
+  <section class="card">
+    <div class="card-head"><div><h2>Runs</h2><div class="sub">Click a header to sort, a row to open the run.</div></div></div>
+    <div class="table-wrap"><table id="runs"></table></div>
+  </section>
+
+  <section class="card">
+    <div class="card-head"><div><h2>Slowest tool calls</h2><div class="sub">Top 25 across the runs in scope (calls of 5 s or more).</div></div></div>
+    <div class="table-wrap"><table id="tools"></table></div>
+  </section>
+
+  <section class="card">
+    <h2>How to read it</h2>
+    <ul class="insights sub">
+      <li><b>Runs</b>: an interactive run starts at the skill's slash command or <code>Skill</code> tool call (or a <em>continue</em> after a report) and ends at its report, else at its last message before the next human prompt. A subagent run (such as an evaluation harness replaying the skill) spans its subagent, first to last event.</li>
+      <li><b>Delivered</b>: the outcome is one of the profile's delivered labels. Without an outcome line, a run whose final message links a pull request counts as PR OPENED, marked with *.</li>
+      <li><b>Verdict</b>: a permutation test (2,000 shuffles) asks how often a gap as large as the one between the two windows appears when runs are dealt at random. <b>Better</b> or <b>Worse</b> when that happens less than 5% of the time (p &lt; 0.05); <b>leaning</b> under 20%. The headline combines the median delivered run and the delivery rate. Small windows rarely conclude: widen the window to confirm a trend.</li>
+      <li><b>Attribution</b>: between two transcript events the gap goes to the running tool (the one ending last when several run), else to the <b>LLM</b> when the model speaks next, or to <b>Human wait</b> when a person does. Waits on a subagent are replaced by what that subagent did, recursively; the rest is a <b>Stall &amp; handoff</b> (stream cut off and retried, orchestrator returning before the work is done, agent start-up).</li>
+      <li><b>Shell commands</b> are classified from their text, heredocs, quoted strings and comments removed: the profile's repository commands first, then <code>git commit</code> → pre-commit suite (the hooks it runs); test and build runners → build &amp; test; <code>sleep</code> / <code>until</code> → polling.</li>
+    </ul>
+  </section>
+</main>
+<div id="tooltip" role="status" aria-live="polite"></div>
+
+<script>
+const EMBEDDED = /*__DATA__*/null;
+const LIVE = location.protocol.startsWith("http") && EMBEDDED === null;
+const SVGNS = "http://www.w3.org/2000/svg";
+const GROUP_VARS = ["--s1", "--s2", "--s3", "--s4", "--s5", "--s6", "--s7", "--s8"];
+const KIND_VARS = { "subagent": "--s1", "interactive": "--s2" };
+const KIND_LABEL = { "subagent": "Subagent run", "interactive": "Interactive" };
+const WAITING_GROUPS = ["Sleep / polling", "Human wait", "Stalls & handoffs"];
+const ROLLING = 5;
+const PERMUTATIONS = 2000;
+const ALPHA = 0.05;
+const LEANING_ALPHA = 0.2;
+const STORE_PREFIX = "observe-skill:v1:";
+const PREFS = ["kind", "caseKey", "metric", "window", "scope", "stack", "log"];
+const WINDOWS = [["runs5", "Last 5 runs"], ["runs10", "Last 10 runs"], ["runs20", "Last 20 runs"], ["days7", "Last 7 days"], ["days30", "Last 30 days"]];
+const SCOPES = [["current", "Current window"], ["previous", "Previous window"], ["all", "All runs"]];
+const VERDICTS = {
+  better: ["good", "✓", "Better"], worse: ["bad", "✕", "Worse"], stable: ["neutral", "≈", "No clear change"],
+  same: ["neutral", "=", "Unchanged"], na: ["neutral", "–", "Too few runs"], mixed: ["warn", "!", "Mixed"],
+};
+
+const state = { data: null, kind: null, caseKey: "all", metric: "duration", window: "runs10", scope: "current", stack: "abs", log: null, selected: null, sort: { key: "start", dir: -1 } };
+
+/* ---------- helpers ---------- */
+function cssVar(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+function groupColor(group) { const i = state.data.groups.indexOf(group); return cssVar(GROUP_VARS[i] || "--muted"); }
+function groupOfLeaf(leaf) { const found = Object.entries(state.data.group_leaves).find(([, leaves]) => leaves.includes(leaf)); return found ? found[0] : "Other tools"; }
+function el(tag, attrs = {}, text) {
+  const node = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) { if (k === "class") node.className = v; else if (k === "style") node.style.cssText = v; else node.setAttribute(k, v); }
+  if (text !== undefined) node.textContent = text;
+  return node;
+}
+function s(tag, attrs = {}, text) {
+  const node = document.createElementNS(SVGNS, tag);
+  for (const [k, v] of Object.entries(attrs)) node.setAttribute(k, v);
+  if (text !== undefined) node.textContent = text;
+  return node;
+}
+function fmtMin(seconds) {
+  if (seconds == null || isNaN(seconds)) return "–";
+  const m = seconds / 60;
+  if (m >= 120) return (m / 60).toFixed(1) + " h";
+  if (m >= 10) return Math.round(m) + " min";
+  if (m >= 1) return m.toFixed(1) + " min";
+  return Math.round(seconds) + " s";
+}
+function fmtPct(x) { return isFinite(x) ? (x * 100).toFixed(x > 0 && x < 0.1 ? 1 : 0) + "%" : "–"; }
+function fmtNum(n) { if (n == null) return "–"; if (n >= 1e6) return (n / 1e6).toFixed(1) + "M"; if (n >= 1e3) return (n / 1e3).toFixed(1) + "K"; return String(Math.round(n * 10) / 10); }
+function fmtDate(iso) { const d = new Date(iso); return d.toLocaleDateString(undefined, { month: "short", day: "numeric" }) + " " + d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" }); }
+function fmtDay(t) { return new Date(t).toLocaleDateString(undefined, { month: "short", day: "numeric" }); }
+function fmtP(p) { return p == null ? "–" : p < 0.001 ? "< 0.001" : p.toFixed(p < 0.01 ? 3 : 2); }
+function quantile(values, q) {
+  if (!values.length) return NaN;
+  const v = [...values].sort((a, b) => a - b);
+  const pos = (v.length - 1) * q, lo = Math.floor(pos), hi = Math.ceil(pos);
+  return v[lo] + (v[hi] - v[lo]) * (pos - lo);
+}
+const median = values => quantile(values, 0.5);
+const p90 = values => quantile(values, 0.9);
+const mean = values => values.length ? values.reduce((a, b) => a + b, 0) / values.length : NaN;
+const sum = values => values.reduce((a, b) => a + b, 0);
+
+function metricOf(run) { return state.metric === "active" ? run.active : run.duration; }
+function caseKey(run) { return run.case || run.spec || "(unknown spec)"; }
+function specText(key) { const label = (state.data.profile && state.data.profile.spec_label) || "{}"; return key.startsWith("(") ? key : label.replace("{}", key); }
+function runLabel(run) { return specText(caseKey(run)) + (run.increment ? " #" + run.increment : ""); }
+function visibleGroups() { return state.data.groups.filter(g => !(state.metric === "active" && g === "Human wait")); }
+function groupSeconds(run, group) { return state.metric === "active" && group === "Human wait" ? 0 : (run.by_group[group] || 0); }
+function suiteRuns(run) { return run.commits && run.manual_hook_runs ? run.commits.executions + run.manual_hook_runs.executions : null; }
+function suiteDurations(run) { return run.commits && run.manual_hook_runs ? run.commits.durations.concat(run.manual_hook_runs.durations) : []; }
+function delivered(runs) { return runs.filter(r => r.delivered); }
+function profileSteps() { return (state.data.profile && state.data.profile.steps) || []; }
+function stepSeconds(run, step) { return (run.by_step || {})[step] || 0; }
+function shortStep(step) { return step.split(" — ")[0]; }
+
+/* ---------- tooltip ---------- */
+const tooltip = document.getElementById("tooltip");
+function showTip(event, title, rows) {
+  tooltip.replaceChildren(el("div", { class: "t-title" }, title));
+  for (const row of rows) {
+    const line = el("div", { class: "t-row" });
+    if (row.color) line.appendChild(el("span", { class: "t-key", style: "background:" + row.color }));
+    line.appendChild(el("b", {}, row.value));
+    line.appendChild(el("span", {}, row.label));
+    tooltip.appendChild(line);
+  }
+  tooltip.style.display = "block";
+  const pad = 14, w = tooltip.offsetWidth, h = tooltip.offsetHeight;
+  let x = event.clientX + pad, y = event.clientY + pad;
+  if (x + w > innerWidth - 8) x = event.clientX - w - pad;
+  if (y + h > innerHeight - 8) y = event.clientY - h - pad;
+  tooltip.style.left = Math.max(8, x) + "px"; tooltip.style.top = Math.max(8, y) + "px";
+}
+function hideTip() { tooltip.style.display = "none"; }
+function bindTip(node, titleFn, rowsFn) {
+  node.addEventListener("pointermove", e => showTip(e, titleFn(), rowsFn()));
+  node.addEventListener("pointerleave", hideTip);
+  node.addEventListener("focus", () => { const r = node.getBoundingClientRect(); showTip({ clientX: r.right, clientY: r.top }, titleFn(), rowsFn()); });
+  node.addEventListener("blur", hideTip);
+}
+function selectable(node, run) {
+  node.setAttribute("tabindex", "0");
+  node.setAttribute("role", "button");
+  node.style.cursor = "pointer";
+  node.addEventListener("click", () => selectRun(run.id));
+  node.addEventListener("keydown", e => { if (e.key === "Enter") selectRun(run.id); });
+}
+
+/* ---------- preferences ---------- */
+function storeKey() { return STORE_PREFIX + ((state.data && state.data.profile && state.data.profile.name) || "default"); }
+let prefsLoaded = false;
+function loadPrefs() {
+  try { const saved = JSON.parse(localStorage.getItem(storeKey()) || "{}"); for (const k of PREFS) if (k in saved) state[k] = saved[k]; } catch (e) { /* storage unavailable */ }
+}
+function savePrefs() {
+  try { localStorage.setItem(storeKey(), JSON.stringify(Object.fromEntries(PREFS.map(k => [k, state[k]])))); } catch (e) { /* storage unavailable */ }
+}
+function normalizeState() {
+  const runs = state.data.runs;
+  const kinds = new Set(runs.map(r => r.kind));
+  if (state.kind === null || (state.kind !== "all" && !kinds.has(state.kind))) {
+    state.kind = runs.filter(r => r.kind === "subagent").length >= 6 ? "subagent" : "all";
+  }
+  if (state.caseKey !== "all" && !runs.some(r => kindMatch(r) && caseKey(r) === state.caseKey)) state.caseKey = "all";
+  if (!WINDOWS.some(w => w[0] === state.window)) state.window = "runs10";
+  if (!SCOPES.some(w => w[0] === state.scope)) state.scope = "current";
+}
+
+/* ---------- population, windows, statistics ---------- */
+function kindMatch(run) { return state.kind === "all" || run.kind === state.kind; }
+function population() {
+  return state.data.runs.filter(r => kindMatch(r) && (state.caseKey === "all" || caseKey(r) === state.caseKey))
+    .sort((a, b) => a.start.localeCompare(b.start));
+}
+function computeWindows(pop) {
+  if (state.window.startsWith("runs")) {
+    const n = Number(state.window.slice(4));
+    return {
+      current: pop.slice(-n), previous: pop.slice(Math.max(0, pop.length - 2 * n), Math.max(0, pop.length - n)),
+      currentLabel: "the last " + n + " runs", previousLabel: "the " + n + " runs before", range: null,
+    };
+  }
+  const days = Number(state.window.slice(4));
+  const anchor = Date.parse(state.data.generated_at);
+  const cStart = anchor - days * 864e5, pStart = anchor - 2 * days * 864e5;
+  const t = r => Date.parse(r.start);
+  return {
+    current: pop.filter(r => t(r) >= cStart && t(r) <= anchor), previous: pop.filter(r => t(r) >= pStart && t(r) < cStart),
+    currentLabel: "the last " + days + " days", previousLabel: "the " + days + " days before", range: { pStart, cStart, anchor },
+  };
+}
+function mulberry32(seed) {
+  return function () {
+    seed = (seed + 0x6D2B79F5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+const pCache = new Map();
+function permutationP(a, b, stat) {
+  const key = stat.name + "|" + a.join(",") + "|" + b.join(",");
+  if (pCache.has(key)) return pCache.get(key);
+  const observed = Math.abs(stat(a) - stat(b));
+  const pooled = a.concat(b), random = mulberry32(20261013);
+  let extreme = 0;
+  for (let i = 0; i < PERMUTATIONS; i++) {
+    for (let j = pooled.length - 1; j > 0; j--) { const k = Math.floor(random() * (j + 1)); [pooled[j], pooled[k]] = [pooled[k], pooled[j]]; }
+    if (Math.abs(stat(pooled.slice(0, a.length)) - stat(pooled.slice(a.length))) >= observed - 1e-9) extreme++;
+  }
+  const p = (extreme + 1) / (PERMUTATIONS + 1);
+  pCache.set(key, p);
+  return p;
+}
+function comparisonMetrics() {
+  return [
+    { key: "median", label: "Median run", note: "delivered runs", unit: "time", stat: median, value: metricOf, deliveredOnly: true },
+    { key: "p90", label: "p90 run", note: "delivered runs", unit: "time", stat: p90, value: metricOf, deliveredOnly: true },
+    { key: "delivery", label: "Delivery rate", note: "all runs", unit: "rate", stat: mean, value: r => (r.delivered ? 1 : 0), higherIsBetter: true },
+    { section: "Median minutes per delivered run, by cause" },
+    ...visibleGroups().map(g => ({ key: "g:" + g, label: g, unit: "time", stat: median, value: r => groupSeconds(r, g), deliveredOnly: true, group: g })),
+    ...(profileSteps().length ? [{ section: "Median minutes per delivered run, by step" }] : []),
+    ...profileSteps().map(step => ({ key: "s:" + step, label: step, unit: "time", stat: median, value: r => stepSeconds(r, step), deliveredOnly: true })),
+    { section: "Median counts per delivered run" },
+    { key: "suite", label: "Pre-commit suite executions", unit: "count", stat: median, value: suiteRuns, deliveredOnly: true },
+    { key: "suiteEach", label: "Pre-commit suite, one execution", unit: "time", stat: median, value: r => (suiteDurations(r).length ? median(suiteDurations(r)) : null), deliveredOnly: true },
+    { key: "turns", label: "Model turns", unit: "count", stat: median, value: r => r.llm_turns, deliveredOnly: true },
+    { key: "reviews", label: "Review iterations", unit: "count", stat: median, value: r => r.review_iterations, deliveredOnly: true },
+    { key: "errors", label: "Tool errors", unit: "count", stat: median, value: r => r.tool_errors, deliveredOnly: true },
+  ];
+}
+function compare(metric, win) {
+  const pick = runs => (metric.deliveredOnly ? delivered(runs) : runs).map(metric.value).filter(v => v != null && !isNaN(v));
+  const a = pick(win.current), b = pick(win.previous);
+  const ca = a.length ? metric.stat(a) : NaN, cb = b.length ? metric.stat(b) : NaN;
+  const diff = ca - cb;
+  const enough = a.length >= 3 && b.length >= 3;
+  const p = enough ? permutationP(a, b, metric.stat) : null;
+  const improves = metric.higherIsBetter ? diff > 0 : diff < 0;
+  let verdict = "na";
+  if (enough) verdict = Math.abs(diff) < 1e-9 ? "same" : p < ALPHA ? (improves ? "better" : "worse") : "stable";
+  const leaning = verdict === "stable" && p < LEANING_ALPHA ? (improves ? "better" : "worse") : null;
+  return { metric, a, b, ca, cb, diff, p, verdict, leaning };
+}
+function fmtValue(unit, v) {
+  if (v == null || isNaN(v)) return "–";
+  if (unit === "time") return fmtMin(v);
+  if (unit === "rate") return Math.round(v * 100) + "%";
+  return Number.isInteger(v) ? String(v) : v.toFixed(1);
+}
+function fmtChange(res) {
+  const { metric, diff, cb } = res;
+  if (isNaN(diff)) return "–";
+  if (Math.abs(diff) < 1e-9) return "0";
+  const sign = diff > 0 ? "+" : "−", abs = Math.abs(diff);
+  if (metric.unit === "rate") return sign + Math.round(abs * 100) + " pts";
+  const value = metric.unit === "time" ? fmtMin(abs) : (Number.isInteger(abs) ? String(abs) : abs.toFixed(1));
+  const meaningful = metric.unit === "time" ? cb >= 30 : cb >= 1;
+  return sign + value + (meaningful ? " (" + sign + Math.round(abs / cb * 100) + "%)" : "");
+}
+function chip(verdict, leaning) {
+  const [cls, icon, label] = VERDICTS[verdict];
+  const node = el("span", { class: "chip " + cls });
+  node.append(el("span", { class: "ic", "aria-hidden": "true" }, icon), document.createTextNode(leaning ? "Leaning " + leaning : label));
+  if (leaning) node.title = "Not significant yet (p between 0.05 and 0.2)";
+  return node;
+}
+
+/* ---------- controls ---------- */
+function segmented(id, options, key) {
+  const root = document.getElementById(id);
+  root.replaceChildren();
+  for (const [value, label] of options) {
+    const b = el("button", { type: "button", "aria-pressed": String(state[key] === value) }, label);
+    b.addEventListener("click", () => { state[key] = value; savePrefs(); render(); });
+    root.appendChild(b);
+  }
+}
+function renderControls() {
+  const kinds = [...new Set(state.data.runs.map(r => r.kind))];
+  segmented("f-kind", (kinds.length > 1 ? kinds.map(k => [k, KIND_LABEL[k]]) : []).concat([["all", "All runs"]]), "kind");
+  segmented("f-metric", [["duration", "Wall-clock"], ["active", "Active (no human wait)"]], "metric");
+  segmented("f-window", WINDOWS, "window");
+  segmented("f-scope", SCOPES, "scope");
+  segmented("f-stack", [["abs", "Minutes"], ["pct", "Share"]], "stack");
+  const select = document.getElementById("f-case");
+  select.replaceChildren();
+  const counts = new Map();
+  for (const r of state.data.runs.filter(kindMatch)) counts.set(caseKey(r), (counts.get(caseKey(r)) || 0) + 1);
+  select.appendChild(el("option", { value: "all" }, "All specs (" + sum([...counts.values()]) + ")"));
+  for (const [key, n] of [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))) {
+    select.appendChild(el("option", { value: key }, specText(key) + " (" + n + ")"));
+  }
+  select.value = state.caseKey;
+}
+
+/* ---------- current performance ---------- */
+function windowText(runs, fallbackRange) {
+  if (!runs.length) return fallbackRange ? "no run (" + fmtDay(fallbackRange[0]) + " → " + fmtDay(fallbackRange[1]) + ")" : "no run";
+  return runs.length + " runs, " + delivered(runs).length + " delivered, " + fmtDate(runs[0].start) + " → " + fmtDate(runs[runs.length - 1].start);
+}
+function renderVerdict(results, win) {
+  const box = document.getElementById("verdict");
+  box.replaceChildren();
+  const med = results.find(r => r.metric.key === "median"), rate = results.find(r => r.metric.key === "delivery");
+  const tested = [med, rate].filter(r => r.verdict !== "na");
+  let kind = "na";
+  if (tested.length) {
+    const worse = tested.some(r => r.verdict === "worse"), better = tested.some(r => r.verdict === "better");
+    kind = worse && better ? "mixed" : worse ? "worse" : better ? "better" : "stable";
+  }
+  const [cls, icon] = VERDICTS[kind];
+  box.className = "verdict " + cls;
+  const titles = {
+    better: "Better than " + win.previousLabel, worse: "Worse than " + win.previousLabel,
+    stable: "No clear change from " + win.previousLabel, mixed: "Mixed compared with " + win.previousLabel,
+    na: win.current.length ? "Not enough runs to compare with " + win.previousLabel : "No run in " + win.currentLabel,
+  };
+  const parts = [];
+  if (med.a.length) parts.push("Median delivered run " + fmtMin(med.ca) + (med.b.length ? " vs " + fmtMin(med.cb) + ": " + fmtChange(med) + (med.p != null ? ", p = " + fmtP(med.p) : "") : "") + ".");
+  if (win.current.length) parts.push("Delivery rate " + fmtValue("rate", rate.ca) + (rate.b.length ? " vs " + fmtValue("rate", rate.cb) : "") + ".");
+  if (med.leaning) parts.push("The median leans " + (med.leaning === "better" ? "faster" : "slower") + ", not significantly yet.");
+  if (kind === "na" && win.current.length) parts.push("Each window needs at least 3 runs (3 delivered runs for durations).");
+  const body = el("div");
+  body.append(el("div", { class: "title" }, titles[kind]), el("div", { class: "text" }, parts.join(" ")));
+  box.append(el("div", { class: "badge", "aria-hidden": "true" }, icon), body);
+}
+function renderTiles(results, win) {
+  const root = document.getElementById("tiles");
+  root.replaceChildren();
+  const get = k => results.find(r => r.metric.key === k);
+  const add = (cls, label, value, note, res) => {
+    const tile = el("div", { class: "tile " + cls });
+    tile.append(el("div", { class: "label" }, label), el("div", { class: "value" }, value), el("div", { class: "note" }, note));
+    if (res) tile.appendChild(chip(res.verdict, res.leaning));
+    root.appendChild(tile);
+  };
+  const versus = res => res.b.length ? "was " + fmtValue(res.metric.unit, res.cb) + " · " + fmtChange(res) : "no previous window";
+  const med = get("median"), tail = get("p90"), rate = get("delivery");
+  add("hero", "Median run (delivered)", fmtValue("time", med.ca), versus(med), med);
+  add("", "p90 run (delivered)", fmtValue("time", tail.ca), versus(tail), tail);
+  add("", "Delivery rate", fmtValue("rate", rate.ca), delivered(win.current).length + " of " + win.current.length + " runs · " + versus(rate), rate);
+  const done = delivered(win.current);
+  if (done.length) {
+    const [group, seconds] = visibleGroups().map(g => [g, median(done.map(r => groupSeconds(r, g)))]).sort((a, b) => b[1] - a[1])[0];
+    add("", "Biggest cost in a typical run", fmtMin(seconds), group + " · " + fmtPct(seconds / median(done.map(metricOf))) + " of the median run");
+  }
+  const share = runs => { const t = sum(runs.map(metricOf)); return t > 0 ? sum(runs.map(r => sum(WAITING_GROUPS.map(g => groupSeconds(r, g))))) / t : NaN; };
+  if (win.current.length) add("", "Lost to waiting", fmtPct(share(win.current)), "of all run time in the window (polling, human, stalls), outliers included · " + (win.previous.length ? "was " + fmtPct(share(win.previous)) : "no previous window"));
+}
+function renderMixWarning(win) {
+  const node = document.getElementById("mix-warning");
+  const key = r => r.kind + "|" + caseKey(r);
+  const a = new Set(win.current.map(key)), b = new Set(win.previous.map(key));
+  const differs = win.previous.length > 0 && ([...a].some(k => !b.has(k)) || [...b].some(k => !a.has(k)));
+  node.hidden = !differs;
+  node.textContent = differs ? "The two windows do not run the same specs, so a change may come from the specs (their size), not from the workflow. Pick one spec in the filter to compare like with like." : "";
+}
+
+/* ---------- what changed ---------- */
+function renderChanges(results, win) {
+  document.getElementById("changes-sub").textContent = "Current window (" + win.currentLabel + ") against " + win.previousLabel + ". Medians per cause do not add up to the median run.";
+  const table = document.getElementById("changes");
+  table.replaceChildren();
+  const head = el("tr");
+  for (const [label, num] of [["Metric", 0], ["Current", 1], ["Previous", 1], ["Change", 1], ["Verdict", 0], ["p", 1]]) head.appendChild(el("th", { class: num ? "num" : "" }, label));
+  const thead = el("thead"); thead.appendChild(head);
+  const tbody = el("tbody");
+  for (const item of results) {
+    if (item.section) { const tr = el("tr", { class: "section" }); tr.appendChild(el("td", { colspan: 6 }, item.section)); tbody.appendChild(tr); continue; }
+    const tr = el("tr");
+    const name = el("td");
+    name.appendChild(item.metric.group ? swatch(item.metric.group, item.metric.label) : document.createTextNode(item.metric.label + (item.metric.note ? " (" + item.metric.note + ")" : "")));
+    tr.appendChild(name);
+    tr.appendChild(el("td", { class: "num" }, fmtValue(item.metric.unit, item.ca)));
+    tr.appendChild(el("td", { class: "num" }, fmtValue(item.metric.unit, item.cb)));
+    tr.appendChild(el("td", { class: "num" }, fmtChange(item)));
+    const verdict = el("td"); verdict.appendChild(chip(item.verdict, item.leaning)); tr.appendChild(verdict);
+    tr.appendChild(el("td", { class: "num muted" }, fmtP(item.p)));
+    tbody.appendChild(tr);
+  }
+  table.append(thead, tbody);
+}
+function renderInsights(win, results) {
+  const root = document.getElementById("insights");
+  root.replaceChildren();
+  const add = text => root.appendChild(el("li", {}, text));
+  const runs = win.current, done = delivered(runs);
+  if (!runs.length) { add("No run in " + win.currentLabel + "."); return; }
+  const basis = done.length ? done : runs;
+  const typical = visibleGroups().map(g => [g, median(basis.map(r => groupSeconds(r, g)))]).filter(x => x[1] >= 1).sort((a, b) => b[1] - a[1]);
+  add("A typical " + (done.length ? "delivered " : "") + "run takes " + fmtMin(median(basis.map(metricOf))) + ": " + typical.map(([g, v]) => g + " " + fmtMin(v)).join(", ") + " (medians per cause, over " + basis.length + " runs).");
+  const total = sum(runs.map(metricOf));
+  const shares = visibleGroups().map(g => [g, sum(runs.map(r => groupSeconds(r, g)))]).filter(x => x[1] > 0).sort((a, b) => b[1] - a[1]);
+  add("All " + runs.length + " runs of the window together spent " + fmtMin(total) + ": " + shares.slice(0, 4).map(([g, v]) => g + " " + fmtPct(v / total)).join(", ") + (shares.length && WAITING_GROUPS.includes(shares[0][0]) ? " — the tail outliers below weigh more than the typical run." : "."));
+  const withSuite = basis.filter(r => suiteRuns(r) != null);
+  if (withSuite.length) {
+    const byActor = {};
+    for (const r of withSuite) for (const stats of [r.commits, r.manual_hook_runs]) for (const [actor, n] of Object.entries(stats.by_actor || {})) byActor[actor] = (byActor[actor] || 0) + n;
+    const actors = Object.entries(byActor).sort((a, b) => b[1] - a[1]).map(([actor, n]) => actor + " " + (n / withSuite.length).toFixed(1));
+    add("The pre-commit suite runs " + median(withSuite.map(suiteRuns)) + " times per run (median), " + fmtMin(median(withSuite.flatMap(suiteDurations))) + " each: "
+      + median(withSuite.map(r => r.manual_hook_runs.executions)) + " by hand, " + median(withSuite.map(r => r.commits.executions)) + " through git commit. Executions per run by actor, on average: " + actors.join(", ") + ".");
+  }
+  const counted = basis.filter(r => r.llm_turns != null);
+  if (counted.length) {
+    const perTurn = sum(counted.map(r => r.by_group["LLM"] || 0)) / sum(counted.map(r => r.llm_turns));
+    add("The model takes " + median(counted.map(r => r.llm_turns)) + " turns per run (median), about " + perTurn.toFixed(1) + " s of wall-clock each, subagents included.");
+  }
+  if (profileSteps().length) {
+    const steps = profileSteps().map(st => [st, median(basis.map(r => stepSeconds(r, st)))]).filter(x => x[1] >= 1);
+    add("By step (median per run): " + steps.map(([st, v]) => shortStep(st) + " " + fmtMin(v)).join(" · ") + ".");
+    const missing = profileSteps().filter(st => !runs.some(r => (r.steps_seen || []).includes(st)));
+    if (missing.length) add("Never detected in this window: " + missing.join(", ") + " — skipped by the runs, or markers to check.");
+  }
+  const phases = state.data.phases.map(p => [p, median(basis.map(r => r.by_actor[p] || 0))]).filter(x => x[1] > 0).sort((a, b) => b[1] - a[1]);
+  add("By phase (median per run): " + phases.map(([p, v]) => p + " " + fmtMin(v)).join(" · ") + ".");
+  const moved = results.filter(r => r.metric.group && !isNaN(r.diff)).sort((a, b) => Math.abs(b.diff) - Math.abs(a.diff))[0];
+  if (moved && Math.abs(moved.diff) >= 30) add("Largest move against " + win.previousLabel + ": " + moved.metric.label + " " + fmtChange(moved) + " per delivered run (" + VERDICTS[moved.verdict][2].toLowerCase() + (moved.p != null ? ", p = " + fmtP(moved.p) : "") + ").");
+  const usual = median(runs.map(metricOf));
+  for (const r of runs.filter(r => sum(WAITING_GROUPS.map(g => groupSeconds(r, g))) > 0.4 * metricOf(r) && metricOf(r) > usual).sort((a, b) => metricOf(b) - metricOf(a)).slice(0, 3)) {
+    const [group, seconds] = WAITING_GROUPS.map(g => [g, groupSeconds(r, g)]).sort((a, b) => b[1] - a[1])[0];
+    const leaf = Object.entries(r.by_category).filter(([k]) => state.data.group_leaves[group].includes(k)).sort((a, b) => b[1] - a[1])[0];
+    add("Outlier on " + fmtDate(r.start) + " (" + fmtMin(metricOf(r)) + "): " + fmtMin(seconds) + " of " + group.toLowerCase() + (leaf ? ", mostly " + leaf[0] : "") + "; without it the run takes " + fmtMin(metricOf(r) - seconds) + ".");
+  }
+  const failed = runs.filter(r => !r.delivered);
+  if (failed.length) add("Not delivered: " + failed.map(r => fmtDate(r.start) + " " + r.outcome + " after " + fmtMin(metricOf(r))).join(", ") + ".");
+}
+
+/* ---------- trend charts ---------- */
+function niceTicks(max, count = 5) {
+  if (!(max > 0)) return [0];
+  const raw = max / count, mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  const step = [1, 2, 5, 10].map(m => m * mag).find(st => st >= raw);
+  const ticks = [];
+  for (let v = 0; v <= max + 1e-9; v += step) ticks.push(Math.round(v * 1e6) / 1e6);
+  if (ticks[ticks.length - 1] < max) ticks.push(Math.round((ticks[ticks.length - 1] + step) * 1e6) / 1e6);
+  return ticks;
+}
+function timeTicks(t0, t1, maxTicks) {
+  if (t1 - t0 <= 2 * 864e5) {
+    const hours = [1, 2, 3, 6, 12].find(h => (t1 - t0) / (h * 36e5) <= maxTicks) || 24;
+    const first = new Date(t0); first.setMinutes(0, 0, 0); first.setHours(Math.ceil(first.getHours() / hours) * hours);
+    const ticks = [];
+    for (let t = first.getTime(); t <= t1; t += hours * 36e5) if (t >= t0) ticks.push([t, new Date(t).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })]);
+    return ticks;
+  }
+  const days = [1, 2, 3, 7, 14, 30].find(d => (t1 - t0) / (d * 864e5) <= maxTicks) || 60;
+  const day = new Date(t0); day.setHours(0, 0, 0, 0);
+  if (day.getTime() < t0) day.setDate(day.getDate() + 1);
+  const ticks = [];
+  for (; day.getTime() <= t1; day.setDate(day.getDate() + days)) ticks.push([day.getTime(), fmtDay(day.getTime())]);
+  return ticks;
+}
+function drawBands(svg, bands, top, bottom, left, right) {
+  const clip = v => Math.min(right, Math.max(left, v));
+  const band = (range, fill) => svg.appendChild(s("rect", { x: clip(range[0]), y: top, width: Math.max(0, clip(range[1]) - clip(range[0])), height: bottom - top, fill }));
+  if (bands.previous) band(bands.previous, cssVar("--wash"));
+  if (bands.current) band(bands.current, cssVar("--wash-2"));
+  if (bands.previous && bands.boundary != null) {
+    const b = clip(bands.boundary);
+    svg.appendChild(s("line", { x1: b, x2: b, y1: top - 14, y2: bottom, stroke: cssVar("--axis") }));
+    svg.appendChild(s("text", { x: b - 6, y: top - 4, "text-anchor": "end", class: "ink" }, "← previous"));
+    svg.appendChild(s("text", { x: b + 6, y: top - 4, class: "ink" }, "current →"));
+  } else if (bands.current) {
+    svg.appendChild(s("text", { x: clip(bands.current[0]) + 4, y: top - 4, class: "ink" }, "current →"));
+  }
+}
+function renderTrend(pop, win) {
+  const root = document.getElementById("trend");
+  root.replaceChildren();
+  const legend = document.getElementById("trend-legend");
+  legend.replaceChildren();
+  const item = (cls, color, label) => { const sp = el("span"); sp.append(el("i", { class: cls, style: color ? "background:" + color : "" }), document.createTextNode(label)); legend.appendChild(sp); };
+  const kinds = [...new Set(pop.map(r => r.kind))];
+  if (kinds.length > 1) for (const k of kinds) item("dot", cssVar(KIND_VARS[k]), KIND_LABEL[k]);
+  if (pop.some(r => !r.delivered)) item("hollow", null, "Not delivered");
+  item("line", cssVar("--ink-2"), "Rolling median");
+  if (!pop.length) { root.appendChild(el("div", { class: "empty" }, "No run matches the filters")); return; }
+  const W = root.clientWidth || 800, H = 300, m = { l: 56, r: 72, t: 26, b: 28 };
+  const svg = s("svg", { width: W, height: H, viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Run duration over time" });
+  const time = r => Date.parse(r.start);
+  let t0 = Math.min(...pop.map(time)), t1 = Math.max(...pop.map(time));
+  if (win.range) { t0 = Math.min(t0, win.range.pStart); t1 = Math.max(t1, win.range.anchor); }
+  if (t1 - t0 < 36e5) { t0 -= 18e5; t1 += 18e5; }
+  const pad = (t1 - t0) * 0.03; t0 -= pad; t1 += pad;
+  const minutes = pop.map(r => metricOf(r) / 60);
+  const useLog = state.log === null ? Math.max(...minutes) > 8 * median(minutes) : state.log;
+  const LOG_TICKS = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000];
+  const maxM = useLog ? LOG_TICKS.find(v => v >= Math.max(...minutes) * 1.05) || Math.max(...minutes) * 1.1 : Math.max(...minutes) * 1.1;
+  document.getElementById("f-log").checked = useLog;
+  const x = t => m.l + (t - t0) / (t1 - t0) * (W - m.l - m.r);
+  let y, ticks;
+  if (useLog) {
+    const lo = Math.max(1, Math.min(...minutes) * 0.7);
+    y = v => H - m.b - (Math.log(Math.max(v, lo)) - Math.log(lo)) / (Math.log(maxM) - Math.log(lo)) * (H - m.t - m.b);
+    ticks = LOG_TICKS.filter(v => v >= lo && v <= maxM);
+  } else {
+    ticks = niceTicks(maxM);
+    const top = ticks[ticks.length - 1];
+    y = v => H - m.b - v / top * (H - m.t - m.b);
+  }
+  const bands = {};
+  if (win.range) {
+    bands.previous = [x(win.range.pStart), x(win.range.cStart)];
+    bands.current = [x(win.range.cStart), x(win.range.anchor)];
+    bands.boundary = x(win.range.cStart);
+  } else if (win.current.length) {
+    const cs = win.current.map(time), ps = win.previous.map(time);
+    bands.boundary = ps.length ? (x(Math.max(...ps)) + x(Math.min(...cs))) / 2 : null;
+    bands.current = [bands.boundary != null ? bands.boundary : x(Math.min(...cs)) - 8, x(Math.max(...cs)) + 8];
+    if (ps.length) bands.previous = [x(Math.min(...ps)) - 8, bands.boundary];
+  }
+  drawBands(svg, bands, m.t, H - m.b, m.l, W - m.r);
+  for (const v of ticks) {
+    svg.appendChild(s("line", { x1: m.l, x2: W - m.r, y1: y(v), y2: y(v), stroke: cssVar("--grid") }));
+    svg.appendChild(s("text", { x: m.l - 8, y: y(v) + 4, "text-anchor": "end" }, v + " min"));
+  }
+  svg.appendChild(s("line", { x1: m.l, x2: W - m.r, y1: H - m.b, y2: H - m.b, stroke: cssVar("--axis") }));
+  for (const [t, label] of timeTicks(t0, t1, Math.max(2, Math.floor((W - m.l - m.r) / 80)))) {
+    svg.appendChild(s("text", { x: x(t), y: H - 8, "text-anchor": "middle" }, label));
+  }
+  const done = delivered(pop);
+  const rolling = done.map((r, i) => (i < 2 ? null : [time(r), median(done.slice(Math.max(0, i - ROLLING + 1), i + 1).map(metricOf)) / 60])).filter(Boolean);
+  if (rolling.length > 1) {
+    svg.appendChild(s("path", { d: rolling.map(([t, v], i) => (i ? "L" : "M") + x(t).toFixed(1) + "," + y(v).toFixed(1)).join(""), fill: "none", stroke: cssVar("--ink-2"), "stroke-width": 2, "stroke-linejoin": "round", "stroke-linecap": "round" }));
+    const [lt, lv] = rolling[rolling.length - 1];
+    svg.appendChild(s("text", { x: x(lt) + 8, y: y(lv) + 4, class: "ink" }, (lv >= 10 ? Math.round(lv) : lv.toFixed(1)) + " min"));
+  }
+  for (const r of pop) {
+    const cx = x(time(r)), cy = y(metricOf(r) / 60), color = cssVar(KIND_VARS[r.kind]), selected = state.selected === r.id;
+    const g = s("g", { "aria-label": runLabel(r) + " " + fmtMin(metricOf(r)) });
+    g.appendChild(s("circle", { cx, cy, r: selected ? 7 : 5, fill: r.delivered ? color : cssVar("--surface"), stroke: r.delivered ? (selected ? cssVar("--ink") : cssVar("--surface")) : color, "stroke-width": 2 }));
+    g.appendChild(s("circle", { cx, cy, r: 12, fill: "transparent" }));
+    bindTip(g, () => fmtDate(r.start) + " · " + runLabel(r), () => [
+      { value: fmtMin(r.duration), label: "wall-clock" }, { value: fmtMin(r.active), label: "active (no human wait)" },
+      { value: r.outcome + (r.outcome_inferred ? "*" : ""), label: KIND_LABEL[r.kind] },
+    ]);
+    selectable(g, r);
+    svg.appendChild(g);
+  }
+  root.appendChild(svg);
+}
+function renderGroupLegend() {
+  const legend = document.getElementById("group-legend");
+  legend.replaceChildren();
+  for (const g of visibleGroups()) { const sp = el("span"); sp.append(el("i", { style: "background:" + groupColor(g) }), document.createTextNode(g)); legend.appendChild(sp); }
+}
+function roundedTop(x, y, w, h, r) {
+  r = Math.min(r, h, w / 2);
+  return `M${x},${y + h}V${y + r}Q${x},${y} ${x + r},${y}H${x + w - r}Q${x + w},${y} ${x + w},${y + r}V${y + h}Z`;
+}
+function renderStack(pop, win) {
+  const root = document.getElementById("stack");
+  root.replaceChildren();
+  if (!pop.length) { root.appendChild(el("div", { class: "empty" }, "No run matches the filters")); return; }
+  const W = root.clientWidth || 800, H = 300, m = { l: 56, r: 12, t: 26, b: 30 };
+  const svg = s("svg", { width: W, height: H, viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Time breakdown per run" });
+  const groups = visibleGroups();
+  const share = state.stack === "pct";
+  const totals = pop.map(r => sum(groups.map(g => groupSeconds(r, g))) / 60);
+  const cap = share ? 1 : Math.min(Math.max(...totals), Math.max(quantile(totals, 0.9) * 1.5, quantile(totals, 0.5) * 3));
+  const ticks = share ? [0, 0.25, 0.5, 0.75, 1] : niceTicks(cap);
+  const top = share ? 1 : ticks[ticks.length - 1];
+  const y = v => H - m.b - Math.min(v, top) / top * (H - m.t - m.b);
+  const slot = (W - m.l - m.r) / pop.length;
+  const bw = Math.max(3, Math.min(24, slot * 0.7));
+  const currentIds = new Set(win.current.map(r => r.id)), previousIds = new Set(win.previous.map(r => r.id));
+  const cur = pop.map((r, i) => (currentIds.has(r.id) ? i : -1)).filter(i => i >= 0);
+  const prev = pop.map((r, i) => (previousIds.has(r.id) ? i : -1)).filter(i => i >= 0);
+  const bands = {};
+  if (cur.length) {
+    bands.boundary = prev.length ? m.l + slot * Math.min(...cur) : null;
+    bands.current = [m.l + slot * Math.min(...cur), m.l + slot * (Math.max(...cur) + 1)];
+    if (prev.length) bands.previous = [m.l + slot * Math.min(...prev), m.l + slot * (Math.max(...prev) + 1)];
+  }
+  drawBands(svg, bands, m.t, H - m.b, m.l, W - m.r);
+  for (const v of ticks) {
+    svg.appendChild(s("line", { x1: m.l, x2: W - m.r, y1: y(v), y2: y(v), stroke: cssVar("--grid") }));
+    svg.appendChild(s("text", { x: m.l - 8, y: y(v) + 4, "text-anchor": "end" }, share ? Math.round(v * 100) + "%" : v + " min"));
+  }
+  let lastLabel = { x: -Infinity, day: null };
+  pop.forEach((r, i) => {
+    const cx = m.l + slot * (i + 0.5), total = totals[i];
+    const present = groups.filter(g => groupSeconds(r, g) > 0);
+    const g = s("g", { "aria-label": runLabel(r) });
+    if (state.selected === r.id) svg.appendChild(s("rect", { x: cx - slot / 2, y: m.t, width: slot, height: H - m.t - m.b, fill: cssVar("--wash-2") }));
+    let acc = 0;
+    for (const [k, grp] of present.entries()) {
+      if (acc >= top) break;
+      const v = share ? groupSeconds(r, grp) / 60 / total : groupSeconds(r, grp) / 60;
+      const y0 = y(acc), y1 = y(acc + v);
+      acc += v;
+      const last = k === present.length - 1 || acc >= top;
+      const h = Math.max(0, y0 - y1 - (last ? 0 : 2));
+      if (h <= 0) continue;
+      g.appendChild(last ? s("path", { d: roundedTop(cx - bw / 2, y0 - h, bw, h, 4), fill: groupColor(grp) }) : s("rect", { x: cx - bw / 2, y: y0 - h, width: bw, height: h, fill: groupColor(grp) }));
+    }
+    if (!share && total > top) svg.appendChild(s("text", { x: cx, y: m.t - 4, "text-anchor": "middle", class: "ink" }, fmtMin(total * 60) + " ↑"));
+    g.appendChild(s("rect", { x: cx - slot / 2, y: m.t, width: slot, height: H - m.t - m.b, fill: "transparent" }));
+    bindTip(g, () => fmtDate(r.start) + " · " + runLabel(r) + " · " + fmtMin(total * 60), () =>
+      groups.filter(grp => groupSeconds(r, grp) > 0).map(grp => ({ color: groupColor(grp), value: share ? fmtPct(groupSeconds(r, grp) / 60 / total) : fmtMin(groupSeconds(r, grp)), label: grp })));
+    selectable(g, r);
+    svg.appendChild(g);
+    const day = fmtDay(Date.parse(r.start));
+    if (day !== lastLabel.day && cx - lastLabel.x >= 56) { svg.appendChild(s("text", { x: cx, y: H - 10, "text-anchor": "middle" }, day)); lastLabel = { x: cx, day }; }
+  });
+  svg.appendChild(s("line", { x1: m.l, x2: W - m.r, y1: H - m.b, y2: H - m.b, stroke: cssVar("--axis") }));
+  root.appendChild(svg);
+}
+
+/* ---------- details ---------- */
+function table(id, columns, rows, opts = {}) {
+  const tableEl = document.getElementById(id);
+  tableEl.replaceChildren();
+  const thead = el("thead"), tr = el("tr");
+  for (const c of columns) {
+    const th = el("th", { class: (c.num ? "num " : "") + (opts.sortable && c.key ? "sortable" : "") }, c.label + (opts.sortable && state.sort.key === c.key ? (state.sort.dir > 0 ? " ↑" : " ↓") : ""));
+    if (opts.sortable && c.key) th.addEventListener("click", () => { state.sort = { key: c.key, dir: state.sort.key === c.key ? -state.sort.dir : -1 }; render(); });
+    tr.appendChild(th);
+  }
+  thead.appendChild(tr);
+  const tbody = el("tbody");
+  if (!rows.length) { const r = el("tr"); r.appendChild(el("td", { colspan: columns.length, class: "empty" }, "Nothing to show")); tbody.appendChild(r); }
+  for (const row of rows) {
+    const r = el("tr", { class: opts.onClick ? "clickable" + (opts.selected && opts.selected(row) ? " selected" : "") : "" });
+    for (const c of columns) {
+      const td = el("td", { class: (c.num ? "num" : "") + (c.wrap ? " wrap" : "") });
+      const v = c.render(row);
+      if (v instanceof Node) td.appendChild(v); else td.textContent = v;
+      r.appendChild(td);
+    }
+    if (opts.onClick) r.addEventListener("click", () => opts.onClick(row));
+    tbody.appendChild(r);
+  }
+  tableEl.append(thead, tbody);
+}
+function inlineBar(parts) {
+  const total = sum(parts.map(p => p[1]));
+  const bar = el("div", { class: "bar-inline" });
+  for (const [g, v] of parts) if (v > 0) { const seg = el("div", { style: `width:${v / total * 100}%;background:${groupColor(g)}` }); seg.title = g + " " + fmtMin(v); bar.appendChild(seg); }
+  return bar;
+}
+function swatch(group, text) {
+  const sp = el("span", { style: "display:inline-flex;gap:6px;align-items:center" });
+  sp.append(el("i", { style: `width:10px;height:10px;border-radius:2px;display:inline-block;flex:none;background:${groupColor(group)}` }), document.createTextNode(text));
+  return sp;
+}
+function renderGroups(runs) {
+  const root = document.getElementById("groups");
+  root.replaceChildren();
+  const sums = visibleGroups().map(g => [g, sum(runs.map(r => groupSeconds(r, g)))]);
+  const total = sum(sums.map(x => x[1])) || 1;
+  const W = root.clientWidth || 500, rowH = 30, m = { l: 132, r: 120 };
+  const H = sums.length * rowH + 8;
+  const svg = s("svg", { width: W, height: H, viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Total time by cause" });
+  const maxV = Math.max(...sums.map(x => x[1]), 1);
+  svg.appendChild(s("line", { x1: m.l, x2: m.l, y1: 0, y2: H, stroke: cssVar("--axis") }));
+  sums.forEach(([g, v], i) => {
+    const yy = i * rowH + 4, bh = 16, w = Math.max(v > 0 ? 2 : 0, (W - m.l - m.r) * v / maxV), r = Math.min(4, w);
+    svg.appendChild(s("text", { x: m.l - 8, y: yy + 12, "text-anchor": "end", class: "ink" }, g));
+    const bar = s("path", { d: `M${m.l},${yy}H${m.l + w - r}Q${m.l + w},${yy} ${m.l + w},${yy + r}V${yy + bh - r}Q${m.l + w},${yy + bh} ${m.l + w - r},${yy + bh}H${m.l}Z`, fill: groupColor(g), tabindex: 0 });
+    bindTip(bar, () => g, () => [{ color: groupColor(g), value: fmtMin(v), label: "total" }, { value: fmtPct(v / total), label: "of all time" }, { value: fmtMin(v / Math.max(runs.length, 1)), label: "per run on average" }]);
+    svg.appendChild(bar);
+    svg.appendChild(s("text", { x: m.l + w + 6, y: yy + 12, class: "ink" }, fmtMin(v) + " · " + fmtPct(v / total)));
+  });
+  root.appendChild(svg);
+}
+function renderPercentiles(runs) {
+  const done = delivered(runs);
+  document.getElementById("pct-sub").textContent = done.length + " delivered runs in scope; with few runs, p95 is close to the max.";
+  const metrics = [["Wall-clock", r => r.duration], ["Active (no human wait)", r => r.active]].concat(state.data.groups.map(g => [g, r => r.by_group[g] || 0]));
+  table("pct", [
+    { label: "Per run", render: r => r.name },
+    { label: "Mean", num: 1, render: r => fmtMin(mean(r.v)) },
+    { label: "p50", num: 1, render: r => fmtMin(median(r.v)) },
+    { label: "p75", num: 1, render: r => fmtMin(quantile(r.v, 0.75)) },
+    { label: "p90", num: 1, render: r => fmtMin(p90(r.v)) },
+    { label: "p95", num: 1, render: r => fmtMin(quantile(r.v, 0.95)) },
+    { label: "Max", num: 1, render: r => fmtMin(Math.max(...r.v)) },
+  ], done.length ? metrics.map(([name, f]) => ({ name, v: done.map(f) })) : []);
+}
+function renderPhases(runs) {
+  const total = sum(runs.map(r => r.duration)) || 1;
+  const rows = state.data.phases.map(p => {
+    const present = runs.map(r => r.by_actor[p] || 0).filter(v => v > 0);
+    const calls = sum(runs.map(r => r.subagents.filter(x => x.phase === p).length));
+    const mix = state.data.groups.map(g => [g, sum(runs.map(r => (r.by_actor_group[p] || {})[g] || 0))]);
+    return { p, present, calls, mix, total: sum(present) };
+  }).filter(r => r.total > 0);
+  table("phases", [
+    { label: "Actor", render: r => r.p },
+    { label: "Runs", num: 1, render: r => r.present.length },
+    { label: "Subagent calls", num: 1, render: r => (r.p === "orchestrator" ? "–" : r.calls) },
+    { label: "p50 / run", num: 1, render: r => fmtMin(median(r.present)) },
+    { label: "p90 / run", num: 1, render: r => fmtMin(p90(r.present)) },
+    { label: "Max", num: 1, render: r => fmtMin(Math.max(...r.present)) },
+    { label: "Share", num: 1, render: r => fmtPct(r.total / total) },
+    { label: "Spent on", render: r => inlineBar(r.mix) },
+  ], rows);
+}
+function renderSteps(runs) {
+  const card = document.getElementById("steps-card");
+  card.hidden = !profileSteps().length;
+  if (card.hidden) return;
+  const total = sum(runs.map(r => r.duration)) || 1;
+  const rows = profileSteps().map(step => {
+    const per = runs.map(r => stepSeconds(r, step)).filter(v => v > 0);
+    const mix = state.data.groups.map(g => [g, sum(runs.map(r => ((r.by_step_group || {})[step] || {})[g] || 0))]);
+    return { step, per, seen: runs.filter(r => (r.steps_seen || []).includes(step)).length, mix, total: sum(per) };
+  });
+  table("steps", [
+    { label: "Step", render: r => r.step },
+    { label: "Detected in", render: r => (r.seen ? el("span", {}, r.seen + " of " + runs.length + " runs") : el("span", { class: "pill bad" }, "never detected")) },
+    { label: "p50 / run", num: 1, render: r => fmtMin(median(r.per)) },
+    { label: "p90 / run", num: 1, render: r => fmtMin(p90(r.per)) },
+    { label: "Max", num: 1, render: r => (r.per.length ? fmtMin(Math.max(...r.per)) : "–") },
+    { label: "Share", num: 1, render: r => fmtPct(r.total / total) },
+    { label: "Spent on", render: r => inlineBar(r.mix) },
+  ], rows);
+}
+function renderLeaves(runs) {
+  const total = sum(runs.map(r => r.duration)) || 1;
+  const leaves = Object.entries(state.data.group_leaves).flatMap(([g, ls]) => ls.map(l => ({ g, l, v: runs.map(r => r.by_category[l] || 0) })))
+    .map(x => ({ ...x, total: sum(x.v) })).filter(x => x.total > 0).sort((a, b) => b.total - a.total);
+  table("leaves", [
+    { label: "Cause", render: x => swatch(x.g, x.l) },
+    { label: "Group", render: x => x.g },
+    { label: "Total", num: 1, render: x => fmtMin(x.total) },
+    { label: "Share", num: 1, render: x => fmtPct(x.total / total) },
+    { label: "Runs hit", num: 1, render: x => x.v.filter(v => v > 0).length },
+    { label: "p50 / run", num: 1, render: x => fmtMin(median(x.v)) },
+    { label: "p90 / run", num: 1, render: x => fmtMin(p90(x.v)) },
+  ], leaves);
+}
+function outcomePill(run) {
+  const bad = run.outcome === "ABORTED" || run.outcome === "BLOCKED";
+  const node = el("span", { class: "pill " + (run.delivered ? "ok" : bad ? "bad" : "") }, run.outcome + (run.outcome_inferred ? "*" : ""));
+  if (run.outcome_inferred) node.title = "Inferred from the final message: no outcome line";
+  return node;
+}
+function renderRuns(runs) {
+  const waiting = r => sum(WAITING_GROUPS.map(g => r.by_group[g] || 0));
+  const keyed = {
+    start: r => r.start, kind: r => r.kind, spec: r => runLabel(r), outcome: r => r.outcome, duration: r => r.duration, active: r => r.active,
+    llm: r => r.by_group["LLM"] || 0, suite: r => r.by_group["Pre-commit suite"] || 0, build: r => r.by_group["Build & test"] || 0,
+    waiting, suiteRuns: r => suiteRuns(r) ?? -1, reviews: r => r.review_iterations, calls: r => r.tool_call_count, turns: r => r.llm_turns ?? -1,
+  };
+  const f = keyed[state.sort.key] || keyed.start;
+  const sorted = [...runs].sort((a, b) => (f(a) > f(b) ? 1 : f(a) < f(b) ? -1 : 0) * state.sort.dir);
+  table("runs", [
+    { key: "start", label: "Start", render: r => fmtDate(r.start) },
+    { key: "kind", label: "Kind", render: r => KIND_LABEL[r.kind] + (r.trigger === "continue" ? " (continue)" : "") + (r.archived ? " · archived" : "") },
+    { key: "spec", label: "Spec", render: r => runLabel(r) },
+    { key: "outcome", label: "Outcome", render: outcomePill },
+    { key: "duration", label: "Wall-clock", num: 1, render: r => fmtMin(r.duration) },
+    { key: "active", label: "Active", num: 1, render: r => fmtMin(r.active) },
+    { key: "llm", label: "LLM", num: 1, render: r => fmtMin(r.by_group["LLM"] || 0) },
+    { key: "suite", label: "Pre-commit", num: 1, render: r => fmtMin(r.by_group["Pre-commit suite"] || 0) },
+    { key: "suiteRuns", label: "Suite runs", num: 1, render: r => suiteRuns(r) ?? "–" },
+    { key: "build", label: "Build & test", num: 1, render: r => fmtMin(r.by_group["Build & test"] || 0) },
+    { key: "waiting", label: "Waiting", num: 1, render: r => fmtMin(waiting(r)) },
+    { key: "reviews", label: "Reviews", num: 1, render: r => r.review_iterations },
+    { key: "turns", label: "Turns", num: 1, render: r => r.llm_turns ?? "–" },
+    { key: "calls", label: "Tool calls", num: 1, render: r => r.tool_call_count + (r.tool_errors ? " (" + r.tool_errors + " err)" : "") },
+    { label: "Split", render: r => inlineBar(state.data.groups.map(g => [g, r.by_group[g] || 0])) },
+  ], sorted, { sortable: true, onClick: r => selectRun(r.id), selected: r => r.id === state.selected });
+}
+function toolColumns(withRun) {
+  const cols = [
+    { label: "Duration", num: 1, render: c => fmtMin(c.seconds) },
+    { label: "Cause", render: c => swatch(groupOfLeaf(c.category), c.category + (c.failed ? " ✕ failed" : "")) },
+    { label: "Actor", render: c => c.actor },
+    { label: "Command", wrap: 1, render: c => el("code", {}, c.command) },
+  ];
+  if (withRun) cols.splice(3, 0, { label: "Run", render: c => fmtDate(c.run.start) });
+  return cols;
+}
+function renderTools(runs) {
+  const calls = runs.flatMap(r => r.tool_calls.map(c => ({ ...c, run: r }))).sort((a, b) => b.seconds - a.seconds).slice(0, 25);
+  table("tools", toolColumns(true), calls, { onClick: c => selectRun(c.run.id) });
+}
+function renderDetail() {
+  const run = state.data.runs.find(r => r.id === state.selected);
+  const gantt = document.getElementById("gantt");
+  gantt.replaceChildren();
+  const kv = document.getElementById("detail-kv");
+  kv.replaceChildren();
+  if (!run) {
+    document.getElementById("detail-title").textContent = "Run spans";
+    document.getElementById("detail-sub").textContent = "Select a run in a chart or a table.";
+    table("detail-subs", [], []); table("detail-tools", [], []);
+    return;
+  }
+  document.getElementById("detail-title").textContent = "Run spans — " + runLabel(run);
+  document.getElementById("detail-sub").textContent = fmtDate(run.start) + " → " + fmtDate(run.end) + " · " + fmtMin(run.duration) + " wall-clock · " + fmtMin(run.active) + " active. One lane per actor; outlined boxes are subagent lifetimes.";
+  const actors = state.data.phases.filter(p => run.by_actor[p] > 0 || run.subagents.some(sa => sa.phase === p));
+  const steps = run.steps || [];
+  const stepLane = steps.length ? 28 : 0;
+  const W = gantt.clientWidth || 800, lane = 30, m = { l: 96, r: 16, t: 8 + stepLane, b: 26 };
+  const H = m.t + actors.length * lane + m.b;
+  const svg = s("svg", { width: W, height: H, viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Run spans" });
+  const x = sec => m.l + sec / Math.max(run.duration, 1) * (W - m.l - m.r);
+  for (const v of niceTicks(run.duration / 60, Math.max(2, Math.floor((W - m.l - m.r) / 80)))) {
+    if (v * 60 > run.duration) continue;
+    svg.appendChild(s("line", { x1: x(v * 60), x2: x(v * 60), y1: m.t, y2: H - m.b, stroke: cssVar("--grid") }));
+    svg.appendChild(s("text", { x: x(v * 60), y: H - 8, "text-anchor": "middle" }, v + " min"));
+  }
+  if (steps.length) svg.appendChild(s("text", { x: m.l - 8, y: 8 + 16, "text-anchor": "end", class: "ink" }, "steps"));
+  steps.forEach(([off, dur, step], k) => {
+    const x0 = x(off), w = Math.max(1, x(off + dur) - x0);
+    const band = s("rect", { x: x0, y: 8, width: w, height: 22, rx: 3, fill: cssVar(k % 2 ? "--wash" : "--wash-2"), stroke: cssVar("--axis"), "stroke-width": 0.5, tabindex: 0 });
+    bindTip(band, () => step, () => [{ value: fmtMin(dur), label: "in this step" }, { value: "+" + fmtMin(off), label: "from the run start" }]);
+    svg.appendChild(band);
+    const label = shortStep(step);
+    if (w > label.length * 6.5 + 8) svg.appendChild(s("text", { x: x0 + 4, y: 8 + 15, class: "ink", "pointer-events": "none" }, label));
+    if (k) svg.appendChild(s("line", { x1: x0, x2: x0, y1: 8, y2: H - m.b, stroke: cssVar("--axis"), "stroke-width": 1, opacity: 0.7 }));
+  });
+  actors.forEach((a, i) => {
+    const yy = m.t + i * lane;
+    svg.appendChild(s("text", { x: m.l - 8, y: yy + lane / 2 + 4, "text-anchor": "end", class: "ink" }, a));
+    for (const sa of run.subagents.filter(sa => sa.phase === a)) {
+      svg.appendChild(s("rect", { x: x(sa.start_offset), y: yy + 3, width: Math.max(1, x(sa.start_offset + sa.duration) - x(sa.start_offset)), height: lane - 6, rx: 4, fill: "none", stroke: cssVar("--axis") }));
+    }
+  });
+  for (const [off, dur, actor, cat, detail, failed] of run.segments) {
+    const i = actors.indexOf(actor);
+    if (i < 0) continue;
+    const group = groupOfLeaf(cat);
+    const x0 = x(off), w = Math.max(1, x(off + dur) - x0);
+    const rect = s("rect", { x: x0, y: m.t + i * lane + 7, width: w, height: lane - 14, rx: Math.min(2, w / 2), fill: groupColor(group) });
+    bindTip(rect, () => actor + " · " + cat + (failed ? " (failed)" : ""), () => [
+      { color: groupColor(group), value: fmtMin(dur), label: group }, { value: "+" + fmtMin(off), label: "from the run start" },
+    ].concat(detail ? [{ value: "", label: detail }] : []));
+    svg.appendChild(rect);
+  }
+  gantt.appendChild(svg);
+  const suite = run.commits && run.manual_hook_runs
+    ? suiteRuns(run) + " executions: " + run.manual_hook_runs.executions + " by hand, " + run.commits.executions + " via git commit, median " + fmtMin(median(suiteDurations(run))) + " · " + run.commits.count + " commit attempts, " + run.commits.failed + " failed"
+    : "not recorded by this extractor version";
+  const facts = [
+    ["Kind", KIND_LABEL[run.kind] + " · " + run.trigger + " · skill " + run.skill],
+    ["Outcome", (run.outcome_inferred ? "inferred: " : "") + (run.outcome_raw || run.outcome)],
+    ["Run ends at", run.end_reason],
+    ["Self-reported duration", run.reported_duration || "–"],
+    ["Measured", fmtMin(run.duration) + " (" + run.start + " → " + run.end + ")"],
+    ["Pre-commit suite", suite],
+    ["Model turns", (run.llm_turns ?? "–") + " · tool calls " + run.tool_call_count + " (" + run.tool_errors + " errors, " + fmtMin(run.failed_seconds) + " in failed calls)"],
+    ["Tokens", "out " + fmtNum(run.tokens.output) + " · in " + fmtNum(run.tokens.input) + " · cache read " + fmtNum(run.tokens.cache_read) + " · cache write " + fmtNum(run.tokens.cache_write)],
+    ["Models", Object.entries(run.models).map(([k, v]) => k + " ×" + v).join(", ")],
+    ["Transcript", run.transcript + (run.archived ? " (deleted, kept from an earlier scan, extractor v" + run.extractor + ")" : "")],
+  ];
+  for (const [k, v] of facts) kv.append(el("dt", {}, k), el("dd", {}, v));
+  table("detail-subs", [
+    { label: "Subagent", render: sa => sa.phase + (sa.background ? " (bg)" : "") },
+    { label: "Description", render: sa => sa.description },
+    { label: "Start", num: 1, render: sa => "+" + fmtMin(sa.start_offset) },
+    { label: "Lifetime", num: 1, render: sa => fmtMin(sa.duration) },
+    { label: "Spent on", render: sa => inlineBar(state.data.groups.map(g => [g, sa.by_group[g] || 0])) },
+  ], run.subagents);
+  table("detail-tools", toolColumns(false), run.tool_calls.slice(0, 15));
+}
+function selectRun(id) {
+  state.selected = id;
+  render();
+  document.getElementById("detail-card").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+/* ---------- render ---------- */
+function render() {
+  if (!state.data) return;
+  applyProfile();
+  normalizeState();
+  renderControls();
+  const pop = population();
+  const win = computeWindows(pop);
+  const scoped = { current: win.current, previous: win.previous, all: pop }[state.scope];
+  if (state.selected && !state.data.runs.some(r => r.id === state.selected)) state.selected = null;
+  if (!state.selected && scoped.length) state.selected = [...scoped].sort((a, b) => b.duration - a.duration)[0].id;
+  const reread = state.data.scan ? " · " + state.data.scan.extracted + " of " + state.data.scan.sessions + " sessions re-read in " + state.data.scan.seconds + " s" : "";
+  document.getElementById("meta").textContent = state.data.runs.length + " runs found · scanned " + fmtDate(state.data.generated_at) + reread + (LIVE ? " · live" : " · static snapshot");
+  const range = win.range;
+  document.getElementById("now-sub").textContent = "Current, " + win.currentLabel + ": " + windowText(win.current, range && [range.cStart, range.anchor]) + ". Previous, " + win.previousLabel + ": " + windowText(win.previous, range && [range.pStart, range.cStart]) + ".";
+  const results = comparisonMetrics().map(item => (item.section ? item : compare(item, win)));
+  const scored = results.filter(r => !r.section);
+  renderVerdict(scored, win);
+  renderTiles(scored, win);
+  renderMixWarning(win);
+  renderChanges(results, win);
+  renderInsights(win, scored);
+  renderTrend(pop, win);
+  renderGroupLegend();
+  renderStack(pop, win);
+  renderGroups(scoped);
+  renderPercentiles(scoped);
+  renderPhases(scoped);
+  renderSteps(scoped);
+  renderLeaves(scoped);
+  renderDetail();
+  renderRuns(scoped);
+  renderTools(scoped);
+}
+function applyProfile() {
+  const profile = state.data.profile || { title: "Skill runs", skill: "skill", subagent_label: "Subagent run" };
+  KIND_LABEL.subagent = profile.subagent_label;
+  document.title = profile.title;
+  document.getElementById("title").textContent = profile.title;
+  document.getElementById("skill-name").textContent = profile.skill;
+}
+async function load() {
+  if (!LIVE) { state.data = EMBEDDED; loadPrefs(); render(); return; }
+  const app = document.getElementById("app");
+  app.classList.add("loading");
+  try {
+    const response = await fetch("data.json?ts=" + Date.now());
+    state.data = await response.json();
+    if (!prefsLoaded) { loadPrefs(); prefsLoaded = true; }
+    render();
+  } finally { app.classList.remove("loading"); }
+}
+
+document.getElementById("f-case").addEventListener("change", e => { state.caseKey = e.target.value; savePrefs(); render(); });
+document.getElementById("f-log").addEventListener("change", e => { state.log = e.target.checked; savePrefs(); render(); });
+let autoTimer = null;
+document.getElementById("f-auto").addEventListener("change", e => { clearInterval(autoTimer); if (e.target.checked) autoTimer = setInterval(load, 60000); });
+document.getElementById("refresh").addEventListener("click", () => {
+  if (LIVE) { load(); return; }
+  alert("Static snapshot. Rebuild it with:\n\npython3 <skills>/create-observe-skill/scripts/observe.py --config <skills>/observe-<skill>/config.json build\n\nor run `observe.py serve` for a live dashboard.");
+});
+if (!LIVE) document.getElementById("auto-wrap").style.display = "none";
+let resizeTimer = null;
+addEventListener("resize", () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(render, 150); });
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", render);
+load();
+</script>
+</body>
+</html>

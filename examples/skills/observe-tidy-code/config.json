@@ -1,0 +1,19 @@
+{
+  "name": "observe-tidy-code",
+  "skill": "tidy-code",
+  "title": "tidy-code runs",
+  "spec": "(\\d+)\\s*files?",
+  "spec_default": "1",
+  "spec_label": "{} file(s)",
+  "report": "(?im)^#{1,3}\\s.*tidy report",
+  "final_outcomes": [["(?i)let me know|do you want", "ASKED HUMAN"]],
+  "phases": { "triage": ["triage"], "review": ["review"] },
+  "commands": [
+    { "cause": "lint", "pattern": "\\blintkit\\b", "group": "Build & test" }
+  ],
+  "steps": [
+    { "name": "Step 1 — Pick the files", "markers": ["^Agent: .*triage", "picking-rules\\.md"] },
+    { "name": "Step 2 — Clean", "markers": ["^Bash: .*\\blintkit --fix\\b"] },
+    { "name": "Step 3 — Review and PR", "markers": ["^Agent: .*review", "^Bash: .*\\bgh pr create\\b"] }
+  ]
+}
